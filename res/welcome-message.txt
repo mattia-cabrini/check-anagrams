@@ -1,0 +1,2 @@
+Copyright (c) Mattia Cabrini 2024
+This software is distributed under the MIT License
