@@ -62,24 +62,42 @@ func runeMapFromString(str string) (runeMap map[rune]int) {
 	return
 }
 
-func compareRuneMaps(runeMapA, runeMapB map[rune]int) bool {
-	if len(runeMapA) != len(runeMapB) {
-		return false
-	}
+func compareRuneMapsBase(runeMapA, runeMapB map[rune]int, diff *map[rune]int, sgn int) (b bool) {
+	b = true
 
 	for rx, aNX := range runeMapA {
 		bNX, found := runeMapB[rx]
 
 		if !found {
-			return false
+			b = false
 		}
 
 		if aNX != bNX {
-			return false
+			b = false
+		}
+
+		(*diff)[rx] = (*diff)[rx] + (aNX-bNX)*sgn
+	}
+
+	return
+}
+
+func compareRuneMaps(runeMapA, runeMapB map[rune]int) (b bool, diff map[rune]int) {
+	diff = make(map[rune]int, 0)
+
+	b1 := compareRuneMapsBase(runeMapA, runeMapB, &diff, 1)
+	b2 := compareRuneMapsBase(runeMapB, runeMapA, &diff, -1)
+
+	for rx, _ := range runeMapA {
+		_, found := runeMapB[rx]
+
+		if found {
+			diff[rx] = diff[rx] / 2
 		}
 	}
 
-	return true
+	b = b1 && b2
+	return
 }
 
 func readLineP(k *bufio.Scanner) string {
@@ -103,12 +121,18 @@ func checker(k *bufio.Scanner) {
 	runeMap1 := runeMapFromString(line1)
 	runeMap2 := runeMapFromString(line2)
 
-	ok := compareRuneMaps(runeMap1, runeMap2)
+	ok, diff := compareRuneMaps(runeMap1, runeMap2)
 
 	if ok {
 		fmt.Println("Anagram is OK!")
 	} else {
-		fmt.Println("Anagram is KO!")
+		fmt.Println("Anagram is KO!\nDiff:")
+
+		for rx, dx := range diff {
+			if dx != 0 {
+				fmt.Printf("%c -- %d\n", rx, dx)
+			}
+		}
 	}
 }
 
